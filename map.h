@@ -18,7 +18,7 @@ enum Tile
 	Corridor,
 	Door = 65,
 	UpStairs = 3,
-	DownStairs = 10;
+	DownStairs = 10
 };
  
 enum class Direction
