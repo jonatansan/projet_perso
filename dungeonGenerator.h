@@ -139,6 +139,17 @@ private:
 			return false;
  
 		map.SetCells(xStart, yStart, xEnd, yEnd, Tile::DirtWall);
+
+		map.SetCell(xStart, yStart, Tile::Wall_UpLeft_Corner);
+		map.SetCell(xStart, yEnd, Tile::Wall_DownLeft_Corner);
+		map.SetCell(xEnd, yStart, Tile::Wall_UpRight_Corner);
+		map.SetCell(xEnd, yEnd, Tile::Wall_DownRight_Corner);
+		
+		for(int i = xStart + 1; i < xEnd; ++i) { map.SetCell(i, yStart, Wall_Hor); }
+		for(int i = xStart + 1; i < xEnd; ++i) { map.SetCell(i, yEnd, Wall_Hor); }
+		for(int j = yStart + 1; j < yEnd; ++j) { map.SetCell(xStart, j, Wall_Ver); }
+		for(int j = yStart + 1 ; j < yEnd; ++j) { map.SetCell(xEnd, j, Wall_Ver); }
+
 		map.SetCells(xStart + 1, yStart + 1, xEnd - 1, yEnd - 1, Tile::DirtFloor);
  
 		//std::cout << "Room: ( " << xStart << ", " << yStart << " ) to ( " << xEnd << ", " << yEnd << " )" << std::endl;
@@ -181,7 +192,7 @@ private:
 	bool MakeFeature(Map& map, RngT& rng) const
 	{
 		auto tries = 0;
-		auto maxTries = 10000;
+		auto maxTries = 1000;
  
 		for( ; tries != maxTries; ++tries)
 		{
@@ -193,7 +204,7 @@ private:
 			int x = GetRandomInt(rng, 1, XSize - 2);
 			int y = GetRandomInt(rng, 1, YSize - 2);
  
-			if (map.GetCell(x, y) != Tile::DirtWall && map.GetCell(x, y) != Tile::Corridor)
+			if (!isWall(map, x, y) && map.GetCell(x, y) != Tile::Corridor)
 				continue;
  
 			if (map.IsAdjacent(x, y, Tile::Door))
@@ -248,104 +259,6 @@ private:
 		return false;
 	}
 
-	void adjustWall(Map& map) const{
-
-		// On s'occupe des quatre coins
-
-		if(map.GetCell(0,0) == Tile::DirtWall) map.SetCell(0,0, Tile::Wall_UpLeft_Corner);
-		if(map.GetCell(0,YSize-1) == Tile::DirtWall) map.SetCell(0,YSize-1, Tile::Wall_DownLeft_Corner);
-		if(map.GetCell(XSize-1,0) == Tile::DirtWall) map.SetCell(XSize-1,0, Tile::Wall_UpRight_Corner);
-		if(map.GetCell(XSize-1,YSize-1) == Tile::DirtWall) map.SetCell(XSize-1,YSize-1, Tile::Wall_DownRight_Corner);
-
-		//On s'occupe des bordures du niveau
-		//Bordure en haut et en bas
-		for(int x = 1; x < XSize - 1; ++x){
-			if(map.GetCell(x,0) == Tile::DirtWall)
-			{
-				if(map.GetCell(x,1) == Tile::DirtFloor)
-						map.SetCell(x,0, Tile::Wall_Hor);
-
-				else if(map.GetCell(x+1,1) == Tile::DirtFloor)
-						map.SetCell(x,0, Tile::Wall_UpLeft_Corner);
-
-				else if(map.GetCell(x-1,1) == Tile::DirtFloor)
-						map.SetCell(x,0, Tile::Wall_UpRight_Corner);
-			}
-
-			if(map.GetCell(x,YSize-1) == Tile::DirtWall)
-			{
-				if(map.GetCell(x,YSize-2) == Tile::DirtFloor)
-						map.SetCell(x,YSize-1, Tile::Wall_Hor);
-
-				else if(map.GetCell(x+1,YSize-2) == Tile::DirtFloor)
-						map.SetCell(x,YSize-1, Tile::Wall_DownLeft_Corner);
-
-				else if(map.GetCell(x-1,YSize-2) == Tile::DirtFloor)
-						map.SetCell(x,YSize-1, Tile::Wall_DownRight_Corner);
-			}
-		
-		}
-
-		// Bordure à gauche et à droite
-		for(int y = 1; y < YSize - 1; ++y){
-			if(map.GetCell(0,y) == Tile::DirtWall)
-			{
-				if(map.GetCell(1,y) == Tile::DirtFloor)
-						map.SetCell(0,y, Tile::Wall_Ver);
-
-				else if(map.GetCell(1,y+1) == Tile::DirtFloor)
-						map.SetCell(0,y, Tile::Wall_UpLeft_Corner);
-
-				else if(map.GetCell(1,y-1) == Tile::DirtFloor)
-						map.SetCell(0,y, Tile::Wall_DownLeft_Corner);
-			}
-
-			if(map.GetCell(XSize-1,y) == Tile::DirtWall)
-			{
-				if(map.GetCell(XSize-2,y) == Tile::DirtFloor)
-						map.SetCell(XSize-1,y, Tile::Wall_Ver);
-
-				else if(map.GetCell(XSize-2,y+1) == Tile::DirtFloor)
-						map.SetCell(XSize-1,y, Tile::Wall_UpRight_Corner);
-
-				else if(map.GetCell(XSize-2,y-1) == Tile::DirtFloor)
-						map.SetCell(XSize-1,y, Tile::Wall_DownRight_Corner);
-			}
-		
-		}
-		
-		for(int x = 1; x < XSize - 1; ++x)
-		{
-			for(int y = 1; y < YSize - 1; ++y)
-			{
-
-				if(map.GetCell(x,y) == Tile::DirtWall)
-				{
-					
-					if(map.GetCell(x-1,y) == Tile::DirtFloor || map.GetCell(x+1,y) == Tile::DirtFloor)
-						map.SetCell(x,y, Tile::Wall_Ver);
-
-					else if(map.GetCell(x,y-1) == Tile::DirtFloor || map.GetCell(x,y+1) == Tile::DirtFloor)
-						map.SetCell(x,y, Tile::Wall_Hor);
-
-					else if(map.GetCell(x+1,y-1) == Tile::DirtFloor)
-						map.SetCell(x,y, Tile::Wall_DownLeft_Corner);
-
-					else if(map.GetCell(x+1,y+1) == Tile::DirtFloor)
-						map.SetCell(x,y, Tile::Wall_UpLeft_Corner);
-
-					else if(map.GetCell(x-1,y-1) == Tile::DirtFloor)
-						map.SetCell(x,y, Tile::Wall_DownRight_Corner);
-
-					else if(map.GetCell(x-1,y+1) == Tile::DirtFloor)
-						map.SetCell(x,y, Tile::Wall_UpRight_Corner);
-				}
-
-			}
-		}
-
-	}
- 
 	bool MakeDungeon(Map& map, RngT& rng) const
 	{
 		// Make one room in the middle to start things off.
@@ -365,10 +278,13 @@ private:
  
 		if (!MakeStairs(map, rng, Tile::DownStairs))
 			std::cout << "Unable to place down stairs." << std::endl;
-
-		adjustWall(map);
  
 		return true;
+	}
+
+	bool isWall(Map& map, int x, int y) const{
+	
+		return map.GetCell(x, y) == Tile::Wall_Hor || map.GetCell(x, y) == Tile::Wall_Ver;
 	}
  
 };
